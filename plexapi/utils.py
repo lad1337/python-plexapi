@@ -7,6 +7,7 @@ import time
 import zipfile
 from datetime import datetime
 from threading import Thread
+from tqdm import tqdm
 from plexapi import compat
 from plexapi.exceptions import NotFound
 
@@ -269,8 +270,11 @@ def download(url, filename=None, savepath=None, session=None, chunksize=4024, un
         return fullpath
     # save the file to disk
     log.info('Downloading: %s', fullpath)
+    total_size = int(response.headers.get('content-length', 0))
+    bar = tqdm(total=total_size, unit='B', unit_scale=True)
     with open(fullpath, 'wb') as handle:
         for chunk in response.iter_content(chunk_size=chunksize):
+            bar.update(chunksize)
             handle.write(chunk)
     # check we want to unzip the contents
     if fullpath.endswith('zip') and unpack:
